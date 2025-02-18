@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Clock from "./clock";
 import DateDisplay from "./DateDisplay";
 import QuranVerse from "./QuranVerse";
@@ -7,9 +7,12 @@ import PrayerProgress from './PrayerProgress';
 import usePrayerTimes from '../hooks/usePrayerTimes';
 import AdhanPlayer from './AdhanPlayer';
 import AnimatedBackground from './AnimatedBackground';
+import AdhanTest from './AdhanTest';
 
 const MainScreen = () => {
     const { prayerTimes, loading, error } = usePrayerTimes();
+    const [testProgress, setTestProgress] = useState(0);
+    const [testCountdown, setTestCountdown] = useState(null);
 
     useEffect(() => {
         document.title = 'TV Adhan';
@@ -26,7 +29,7 @@ const MainScreen = () => {
     }
 
     return (
-        <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-screen h-screen overflow-hidden bg-black">
             <AnimatedBackground prayerTimes={prayerTimes} />
             
             <div className="relative z-20 w-full h-full grid grid-cols-12 grid-rows-[repeat(36,1fr)]">
@@ -61,6 +64,22 @@ const MainScreen = () => {
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[100%] h-[45%] z-30">
                 <Contenersalat />
             </div>
+
+            {/* Composant de test - uniquement en développement */}
+            {process.env.NODE_ENV === 'development' && (
+                <>
+                    <AdhanTest 
+                        onUpdateProgress={setTestProgress}
+                        onUpdateCountdown={setTestCountdown}
+                    />
+                    {testCountdown !== null && (
+                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                                    text-8xl text-white z-50 font-digital">
+                            {testCountdown}
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 };

@@ -3,7 +3,7 @@ import gsap from "gsap";
 import confetti from "canvas-confetti";
 import { getPrayerTimes, convertTimeToMinutes } from '../utils/prayerTimes';
 
-const PrayerProgress = ({ prayerTimes }) => {
+const PrayerProgress = ({ prayerTimes, testProgress }) => {
   const progressBarRef = useRef(null);
   const progressFillRef = useRef(null);
   const timeRef = useRef(null);
@@ -217,6 +217,9 @@ const PrayerProgress = ({ prayerTimes }) => {
     return () => clearInterval(interval);
   }, [prayerTimes]);
 
+  // Utiliser testProgress si fourni, sinon utiliser la progression normale
+  const currentProgress = testProgress ?? progress;
+
   return (
     <div className="absolute bottom-0 left-0 w-full z-20">
       {/* Compte à rebours */}
@@ -258,7 +261,7 @@ const PrayerProgress = ({ prayerTimes }) => {
             ref={progressFillRef}
             className="h-full transition-all duration-1000 ease-out"
             style={{ 
-              width: `${progress}%`,
+              width: `${currentProgress}%`,
               background: 'linear-gradient(to right, #2ecc71, #27ae60)',
               boxShadow: '0 0 20px rgba(46, 204, 113, 0.6)',
               borderRadius: '0 4px 4px 0'
@@ -268,7 +271,7 @@ const PrayerProgress = ({ prayerTimes }) => {
           <div 
             className="absolute top-0 h-full opacity-30"
             style={{
-              width: `${progress}%`,
+              width: `${currentProgress}%`,
               background: 'linear-gradient(to right, transparent, #2ecc71)',
               filter: 'blur(8px)',
               borderRadius: '0 4px 4px 0'
@@ -278,7 +281,7 @@ const PrayerProgress = ({ prayerTimes }) => {
           <div 
             className="absolute top-0 h-[1px] opacity-50"
             style={{
-              width: `${progress}%`,
+              width: `${currentProgress}%`,
               background: 'linear-gradient(to right, transparent, #ffffff)',
               boxShadow: '0 0 4px rgba(255, 255, 255, 0.8)'
             }}
