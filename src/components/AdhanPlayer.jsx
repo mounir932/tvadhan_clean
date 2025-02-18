@@ -7,6 +7,7 @@ const AdhanPlayer = ({ prayerTimes }) => {
     const audioRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showAdhanScreen, setShowAdhanScreen] = useState(false);
+    const [testCountdown, setTestCountdown] = useState(null);
 
     const triggerConfettiAndAdhan = () => {
         // 1. Lancer les confettis d'abord
@@ -51,6 +52,23 @@ const AdhanPlayer = ({ prayerTimes }) => {
                 origin: { x: 0.7, y: Math.random() - 0.2 }
             });
         }, 250);
+    };
+
+    // Fonction de test pour simuler la séquence complète
+    const testSequence = () => {
+        let countdown = 10;
+        setTestCountdown(countdown);
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            setTestCountdown(countdown);
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                setTestCountdown(null);
+                triggerConfettiAndAdhan();
+            }
+        }, 1000);
     };
 
     useEffect(() => {
@@ -105,6 +123,23 @@ const AdhanPlayer = ({ prayerTimes }) => {
                         </p>
                     </div>
                 </div>
+            )}
+
+            {/* Affichage du compte à rebours de test */}
+            {testCountdown !== null && (
+                <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl text-white z-50">
+                    {testCountdown}
+                </div>
+            )}
+
+            {/* Bouton de test */}
+            {process.env.NODE_ENV === 'development' && (
+                <button
+                    onClick={testSequence}
+                    className="fixed bottom-4 right-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded z-50"
+                >
+                    Test Sequence
+                </button>
             )}
         </>
     );
