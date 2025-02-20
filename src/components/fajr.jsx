@@ -19,12 +19,12 @@ const Fajr = () => {
       <div className="w-full h-full text-center text-white font-poppins relative">
         
         {/* Fond Glass */}
-        <div className="absolute inset-0 shadow-[0px_4px_4px_rgba(0,_0,_0,_0.25)_inset] 
+        <div className="absolute w-[350px] h-[200px] inset-0 shadow-[0px_4px_4px_rgba(0,_0,_0,_0.25)_inset] 
                         rounded-[30px] bg-gray/50 backdrop-blur-lg">
         </div>
 
         {/* Conteneur du texte */}
-        <div className="absolute inset-0 flex flex-col justify-center items-center gap-4">
+        <div className="absolute w-[350px] inset-0 flex flex-col justify-center items-center gap-4">
           {/* Nom de la prière */}
           <div className="text-[min(4vw,60px)] font-light">
             <p className="m-0">الفجر</p>

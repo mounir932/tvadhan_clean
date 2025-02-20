@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import confetti from "canvas-confetti";
+console.log("🎉 Déclenchement des confettis !");
 import { getPrayerTimes, convertTimeToMinutes } from '../utils/prayerTimes';
 
-const PrayerProgress = ({ prayerTimes, testProgress }) => {
+const PrayerProgress = ({ prayerTimes, className }) => {
   const progressBarRef = useRef(null);
   const progressFillRef = useRef(null);
+  const displayRef = useRef(null);
   const timeRef = useRef(null);
-  const [nextPrayer, setNextPrayer] = useState(null);
   const [displayTime, setDisplayTime] = useState({ hours: "00", minutes: "00", seconds: "00" });
   const [progress, setProgress] = useState(0);
 
@@ -32,7 +33,7 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
         return clearInterval(interval);
       }
 
-      const particleCount = 100 * (timeLeft / duration);  // Doublé de 50 à 100
+      const particleCount = 200 * (timeLeft / duration);  // Doublé de 50 à 100
 
       // Confetti depuis les coins
       confetti({
@@ -100,8 +101,6 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
           timeRemaining = (24 * 3600) - currentSeconds + next.seconds;
         }
 
-        setNextPrayer(next);
-
         // Animation de la barre de progression
         gsap.fromTo(progressFillRef.current,
           { width: "0%" },
@@ -114,14 +113,16 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
 
         // Mise à jour du compte à rebours
         const updateDisplay = (secondsLeft) => {
-          const h = Math.floor(secondsLeft / 3600);
-          const m = Math.floor((secondsLeft % 3600) / 60);
-          const s = secondsLeft % 60;
+          if (!displayRef.current) return;
+
+          const hours = Math.floor(secondsLeft / 3600);
+          const minutes = Math.floor((secondsLeft % 3600) / 60);
+          const seconds = secondsLeft % 60;
 
           const newTime = {
-            hours: h.toString().padStart(2, '0'),
-            minutes: m.toString().padStart(2, '0'),
-            seconds: s.toString().padStart(2, '0')
+            hours: hours.toString().padStart(2, '0'),
+            minutes: minutes.toString().padStart(2, '0'),
+            seconds: seconds.toString().padStart(2, '0')
           };
 
           // Animation des chiffres qui changent
@@ -181,7 +182,7 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
 
       const times = getPrayerTimes(prayerTimes);
       const now = new Date();
-      const currentTime = convertTimeToMinutes(`${now.getHours()}:${now.getMinutes()}`);
+      let currentTime = now.getHours() * 60 + now.getMinutes();
 
       // Calculer la progression
       let start, end;
@@ -204,12 +205,22 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
         start = times.isha;
         end = times.fajr + 1440; // Ajouter 24h en minutes
         if (currentTime < times.fajr) {
-          currentTime += 1440; // Ajouter 24h si on est après minuit
+          currentTime += 1440;
         }
       }
 
       const progressValue = ((currentTime - start) / (end - start)) * 100;
-      setProgress(Math.min(Math.max(progressValue, 0), 100));
+      const newProgress = Math.min(Math.max(progressValue, 0), 100);
+      
+      // Ne pas bloquer l'interface pendant l'adhan
+      setProgress(newProgress);
+      
+      // Déclencher les confettis à 100% sans bloquer
+      if (newProgress >= 99.8) {
+    console.log("🎉 Déclenchement des confettis !");
+    triggerConfetti();
+}
+
     };
 
     updateProgress();
@@ -217,14 +228,11 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
     return () => clearInterval(interval);
   }, [prayerTimes]);
 
-  // Utiliser testProgress si fourni, sinon utiliser la progression normale
-  const currentProgress = testProgress ?? progress;
-
   return (
-    <div className="absolute bottom-0 left-0 w-full z-20">
+    <div className={`absolute bottom-0 left-0 w-full z-20 ${className}`}>
       {/* Compte à rebours */}
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[600px] h-[120px]">
-        <div className="w-full h-full flex justify-center items-center">
+      <div ref={displayRef} className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[600px] h-[120px]">
+        <div className="relative w-full h-full flex items-center justify-center gap-4">
           <div className="w-full h-full text-center text-white font-poppins relative">
             <div className="absolute inset-0 shadow-[0px_4px_4px_rgba(0,_0,_0,_0.25)_inset] 
                           rounded-[30px] bg-gray/50 backdrop-blur-lg">
@@ -261,7 +269,7 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
             ref={progressFillRef}
             className="h-full transition-all duration-1000 ease-out"
             style={{ 
-              width: `${currentProgress}%`,
+              width: `${progress}%`,
               background: 'linear-gradient(to right, #2ecc71, #27ae60)',
               boxShadow: '0 0 20px rgba(46, 204, 113, 0.6)',
               borderRadius: '0 4px 4px 0'
@@ -271,7 +279,7 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
           <div 
             className="absolute top-0 h-full opacity-30"
             style={{
-              width: `${currentProgress}%`,
+              width: `${progress}%`,
               background: 'linear-gradient(to right, transparent, #2ecc71)',
               filter: 'blur(8px)',
               borderRadius: '0 4px 4px 0'
@@ -281,7 +289,7 @@ const PrayerProgress = ({ prayerTimes, testProgress }) => {
           <div 
             className="absolute top-0 h-[1px] opacity-50"
             style={{
-              width: `${currentProgress}%`,
+              width: `${progress}%`,
               background: 'linear-gradient(to right, transparent, #ffffff)',
               boxShadow: '0 0 4px rgba(255, 255, 255, 0.8)'
             }}

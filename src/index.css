@@ -7,6 +7,8 @@
 :root {
   --primary-color: #1a1a1a;
   --text-color: #ffffff;
+  --gradient-from: #1a1a2e;
+  --gradient-to: #16213e;
   font-family: "Poppins", sans-serif;
 }
 
@@ -200,4 +202,70 @@ button:focus-visible {
 /* Ajoutez ces styles pour la transition fluide */
 .transition-colors {
     transition: background-color 1000ms ease-in-out;
+}
+body, html {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sky {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, #87CEEB, #1E90FF); /* Dégradé pour le ciel */
+  animation: skyChange 10s infinite alternate; /* Animation pour changer le ciel */
+}
+
+.sun {
+  position: absolute;
+  top: 20%; /* Position initiale du soleil */
+  left: 50%; /* Centré horizontalement */
+  transform: translate(-50%, -50%);
+  width: 100px; /* Taille du soleil */
+  height: 100px; /* Taille du soleil */
+  background-color: yellow; /* Couleur du soleil */
+  border-radius: 50%; /* Rendre le soleil circulaire */
+  box-shadow: 0 0 30px rgba(255, 255, 0, 0.5); /* Effet de lueur */
+  animation: sunMove 10s infinite alternate; /* Animation pour le mouvement du soleil */
+}
+
+@keyframes skyChange {
+  0% {
+      background: linear-gradient(to bottom, #87CEEB, #1E90FF); /* Ciel clair */
+  }
+  100% {
+      background: linear-gradient(to bottom, #FF4500, #8B0000); /* Ciel au coucher de soleil */
+  }
+}
+
+@keyframes sunMove {
+  0% {
+      top: 20%; /* Position haute */
+  }
+  100% {
+      top: 80%; /* Position basse */
+  }
+}
+
+/* Ajoutez ces styles pour l'animation des étoiles */
+@keyframes twinkle {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+}
+
+.star {
+    animation: twinkle 2s infinite;
+}
+
+/* Assurez-vous que le body et le html prennent toute la hauteur */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Ajoutez une transition sur le background pour le rendre plus fluide */
+.bg-transition {
+    transition: background-color 0.5s ease;
 }

@@ -6,13 +6,24 @@ import Contenersalat from "./Contenersalat";
 import PrayerProgress from './PrayerProgress';
 import usePrayerTimes from '../hooks/usePrayerTimes';
 import AdhanPlayer from './AdhanPlayer';
-import AnimatedBackground from './AnimatedBackground';
-import AdhanTest from './AdhanTest';
-
+import BgFajr from './bgfajr';
+import Weather from './Weather';
+import Sun from './sun'; // 🌞 Importation du soleil*/
 const MainScreen = () => {
     const { prayerTimes, loading, error } = usePrayerTimes();
-    const [testProgress, setTestProgress] = useState(0);
-    const [testCountdown, setTestCountdown] = useState(null);
+    const [backgroundType, setBackgroundType] = useState('gsap'); // 'threejs', 'css', ou 'gsap'
+
+    // Fonction pour gérer le rendu de l'arrière-plan
+    const renderBackground = () => {
+        if (!prayerTimes) {
+            console.warn("⏳ Attente du chargement de `prayerTimes`...");
+            return null; // 🔥 Ne rien afficher tant que `prayerTimes` est `null`
+        }
+        console.log("🎨 `BgFajr` va être affiché avec `prayerTimes` :", prayerTimes);
+        return <BgFajr />;
+    };
+    
+
 
     useEffect(() => {
         document.title = 'TV Adhan';
@@ -22,25 +33,31 @@ const MainScreen = () => {
         oldButtons.forEach(button => button.remove());
     }, []);
 
+    // Affichage en cas de chargement ou d'erreur
     if (loading || error) {
-        return <div className="w-screen h-screen bg-black flex items-center justify-center text-white">
-            {loading ? 'Chargement des horaires de prière...' : `Erreur: ${error.message}`}
-        </div>;
+        return (
+            <div className="w-screen h-screen bg-black flex items-center justify-center text-white">
+                {loading ? 'Chargement des horaires de prière...' : `Erreur: ${error.message}`}
+            </div>
+        );
     }
 
     return (
-        <div className="relative w-screen h-screen overflow-hidden bg-black">
-            <AnimatedBackground prayerTimes={prayerTimes} />
-            
+        <div className="relative w-screen h-screen overflow-hidden bg-black z-30">
+            {/* 🌞 Soleil animé */}
+            <div className="absolute w-screen h-screen overflow-hidden bg-black z-01">
+             <Sun/>
+            </div>
+
+            {/* 🎨 Arrière-plan animé */}
+            {renderBackground()}
+
+            {/* 🏠 Contenu principal (horloge, météo, etc.) */}
             <div className="relative z-20 w-full h-full grid grid-cols-12 grid-rows-[repeat(36,1fr)]">
-                {/* Grille de debug en développement */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div className="absolute inset-0 grid grid-cols-12 grid-rows-[repeat(36,1fr)] pointer-events-none opacity-50">
-                        {Array.from({ length: 432 }).map((_, i) => (
-                            <div key={i} className="border-[0.5px] border-white/10" />
-                        ))}
-                    </div>
-                )}
+                {/* Météo */}
+                <div className="absolute bottom-[45%] left-1/2 -translate-x-1/2 translate-y-[-20px] w-[30%] z-40">
+                    <Weather />
+                </div>
 
                 {/* Horloge */}
                 <div className="col-start-4 col-span-6 row-start-2 row-span-3 z-30">
@@ -48,38 +65,24 @@ const MainScreen = () => {
                 </div>
 
                 {/* Date */}
-                <div className="col-start-3 col-span-8 row-start-6 row-span-1 z-30">
+                <div className="col-start-2 col-span-10 row-start-6 row-span-1 z-30">
                     <DateDisplay />
                 </div>
 
-                {/* Verset */}
+                {/* Verset du Coran */}
                 <div className="col-start-2 col-span-10 row-start-8 row-span-8 z-30">
                     <QuranVerse />
                 </div>
             </div>
 
+            {/* 📢 Audio Adhan & Progression */}
             <AdhanPlayer prayerTimes={prayerTimes} className="z-30" />
             <PrayerProgress className="z-30" />
             
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[100%] h-[45%] z-30">
+            {/* 📆 Affichage des horaires de prière */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[100%] h-[45%] z-20">
                 <Contenersalat />
             </div>
-
-            {/* Composant de test - uniquement en développement */}
-            {process.env.NODE_ENV === 'development' && (
-                <>
-                    <AdhanTest 
-                        onUpdateProgress={setTestProgress}
-                        onUpdateCountdown={setTestCountdown}
-                    />
-                    {testCountdown !== null && (
-                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-                                    text-8xl text-white z-50 font-digital">
-                            {testCountdown}
-                        </div>
-                    )}
-                </>
-            )}
         </div>
     );
 };
