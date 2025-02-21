@@ -101,73 +101,52 @@ const PrayerProgress = ({ prayerTimes, className }) => {
           timeRemaining = (24 * 3600) - currentSeconds + next.seconds;
         }
 
-        // Animation de la barre de progression
-        gsap.fromTo(progressFillRef.current,
-          { width: "0%" },
-          {
-            width: "100%",
-            duration: timeRemaining,
-            ease: "none"
-          }
-        );
+        // Vérifier que les refs existent avant d'animer
+        if (progressFillRef.current && displayRef.current) {
+          // Animation de la barre de progression
+          gsap.fromTo(progressFillRef.current,
+            { width: "0%" },
+            {
+              width: "100%",
+              duration: timeRemaining,
+              ease: "none",
+              onComplete: () => {
+                // Déclencher les confettis à la fin de la prière
+                triggerConfetti();
+              }
+            }
+          );
 
-        // Mise à jour du compte à rebours
-        const updateDisplay = (secondsLeft) => {
-          if (!displayRef.current) return;
+          // Mise à jour du compte à rebours
+          const updateDisplay = (secondsLeft) => {
+            if (!displayRef.current || !timeRef.current) return;
 
-          const hours = Math.floor(secondsLeft / 3600);
-          const minutes = Math.floor((secondsLeft % 3600) / 60);
-          const seconds = secondsLeft % 60;
+            const hours = Math.floor(secondsLeft / 3600);
+            const minutes = Math.floor((secondsLeft % 3600) / 60);
+            const seconds = secondsLeft % 60;
 
-          const newTime = {
-            hours: hours.toString().padStart(2, '0'),
-            minutes: minutes.toString().padStart(2, '0'),
-            seconds: seconds.toString().padStart(2, '0')
+            const newTime = {
+              hours: hours.toString().padStart(2, '0'),
+              minutes: minutes.toString().padStart(2, '0'),
+              seconds: seconds.toString().padStart(2, '0')
+            };
+
+            setDisplayTime(newTime);
           };
 
-          // Animation des chiffres qui changent
-          Object.entries(newTime).forEach(([unit, value]) => {
-            if (displayTime[unit] !== value) {
-              const digitElements = timeRef.current.querySelectorAll(`.${unit} .digit`);
-              
-              // Animation de chute pour chaque chiffre qui change
-              digitElements.forEach((digit, index) => {
-                const oldDigit = displayTime[unit][index];
-                const newDigit = value[index];
-                
-                if (oldDigit !== newDigit) {
-                  gsap.fromTo(digit,
-                    { 
-                      yPercent: -100,
-                      opacity: 0,
-                    },
-                    {
-                      yPercent: 0,
-                      opacity: 1,
-                      duration: 0.3,
-                      ease: "bounce.out"
-                    }
-                  );
-                }
-              });
+          // Mise à jour chaque seconde
+          let remaining = timeRemaining;
+          const timer = setInterval(() => {
+            remaining--;
+            updateDisplay(remaining);
+            if (remaining <= 0) {
+              clearInterval(timer);
+              getNextPrayer();
             }
-          });
+          }, 1000);
 
-          setDisplayTime(newTime);
-        };
-
-        // Mise à jour chaque seconde
-        let remaining = timeRemaining;
-        const timer = setInterval(() => {
-          remaining--;
-          updateDisplay(remaining);
-          if (remaining <= 0) {
-            clearInterval(timer);
-            getNextPrayer();
-          }
-        }, 1000);
-
-        return () => clearInterval(timer);
+          return () => clearInterval(timer);
+        }
       } catch (error) {
         console.error("Erreur lors de la récupération des horaires :", error);
       }

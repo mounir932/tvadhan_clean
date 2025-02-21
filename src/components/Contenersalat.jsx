@@ -13,7 +13,7 @@ const Contenersalat = () => {
                 
 
                 {/* Fond avec effet glassmorphism */}
-                <div className="absolute inset-0 z-10 backdrop-blur-[10px] rounded-[40px] bg-[#1a1a1a]/20 border-white/10 border shadow-lg"></div>
+                <div className="absolute inset-0 z-10 backdrop-blur-[30px] rounded-[40px] bg-[#1a1a1a]/20 border-white/10 border shadow-lg"></div>
                 
                 {/* Contenu */}
                 <div className="relative w-full h-full p-10 z-20">

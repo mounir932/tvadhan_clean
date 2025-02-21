@@ -2,17 +2,29 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 const NightSky = () => {
-    const mountRef = useRef(null);
+    const containerRef = useRef(null);
+    const sceneRef = useRef(null);
+    const rendererRef = useRef(null);
 
     useEffect(() => {
+        if (!containerRef.current) return;
+
         // 🚀 Initialisation de Three.js
         const scene = new THREE.Scene();
+        sceneRef.current = scene;
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         camera.position.z = 5;
 
         const renderer = new THREE.WebGLRenderer({ alpha: true });
+        rendererRef.current = renderer;
         renderer.setSize(window.innerWidth, window.innerHeight);
-        mountRef.current.appendChild(renderer.domElement);
+        
+        // S'assurer que le container est vide avant d'ajouter le canvas
+        if (containerRef.current.firstChild) {
+            containerRef.current.removeChild(containerRef.current.firstChild);
+        }
+        containerRef.current.appendChild(renderer.domElement);
         
         // 🌟 Générer 15 000 étoiles sans texture
         const numStars = 100000;
@@ -78,7 +90,7 @@ const NightSky = () => {
             for (let i = 0; i < numStars; i++) {
                 positions[i * 3 + 2] += 0.05; // 🌟 Déplacer légèrement vers nous (axe Z)
         
-                // 🔄 Réinitialisation lorsque l’étoile sort du champ de vision
+                // 🔄 Réinitialisation lorsque l'étoile sort du champ de vision
                 if (positions[i * 3 + 2] > 100) {
                     positions[i * 3] = (Math.random() - 0.5) * 200; // X
                     positions[i * 3 + 1] = (Math.random() - 0.5) * 200; // Y
@@ -100,13 +112,29 @@ const NightSky = () => {
         };
         window.addEventListener("resize", handleResize);
 
+        // Cleanup function
         return () => {
+            if (rendererRef.current && rendererRef.current.domElement && containerRef.current) {
+                try {
+                    containerRef.current.removeChild(rendererRef.current.domElement);
+                } catch (error) {
+                    console.warn("Élément déjà supprimé ou inexistant");
+                }
+            }
+            
+            // Nettoyage de la mémoire
+            if (sceneRef.current) {
+                sceneRef.current.clear();
+            }
+            if (rendererRef.current) {
+                rendererRef.current.dispose();
+            }
+            
             window.removeEventListener("resize", handleResize);
-            mountRef.current.removeChild(renderer.domElement);
         };
     }, []);
 
-    return <div ref={mountRef} className="absolute inset-0 w-full h-full" />;
+    return <div ref={containerRef} className="absolute inset-0 z-0" />;
 };
 
 export default NightSky;
