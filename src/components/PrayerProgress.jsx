@@ -224,7 +224,7 @@ const PrayerProgress = ({ prayerTimes, className }) => {
     };
 
     updateProgress();
-    const interval = setInterval(updateProgress, 60000); // Mise à jour chaque minute
+    const interval = setInterval(updateProgress, 1000); // Mise à jour chaque minute
     return () => clearInterval(interval);
   }, [prayerTimes]);
 

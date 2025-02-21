@@ -705,7 +705,7 @@ const QuranVerse = () => {
 
     // Timer pour changer de texte toutes les 30 secondes
     useEffect(() => {
-        const interval = setInterval(nextText, 15000);
+        const interval = setInterval(nextText, 180000);
         return () => clearInterval(interval);
     }, [currentPair]);
 
