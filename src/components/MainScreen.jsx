@@ -11,7 +11,6 @@ import Weather from './Weather';
 import Sun from './sun'; // 🌞 Importation du soleil*/
 const MainScreen = () => {
     const { prayerTimes, loading, error } = usePrayerTimes();
-    const [backgroundType, setBackgroundType] = useState('gsap'); // 'threejs', 'css', ou 'gsap'
 
     // Fonction pour gérer le rendu de l'arrière-plan
     const renderBackground = () => {

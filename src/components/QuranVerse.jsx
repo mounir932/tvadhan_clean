@@ -1,317 +1,247 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import gsap from "gsap";
-import { usePrayerTimes } from "../utils/prayerHook";
 
+// Versets coraniques courts et impactants
 const verses = [
-    { 
-        arabic: "إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ", 
-        translation: "Allah et Ses anges prient sur le Prophète",
-        color: "#FFD700"
-    },
-    { 
-        arabic: "وَأَقِمِ الصَّلَاةَ لِذِكْرِي", 
-        translation: "Et accomplis la prière pour te souvenir de Moi",
-        color: "#90CAF9"
-    },
-    { 
-        arabic: "إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَوْقُوتًا", 
-        translation: "La prière demeure, pour les croyants, une prescription à des temps déterminés",
-        color: "#81C784"
-    },
-    { 
-        arabic: "حَافِظُوا عَلَى الصَّلَوَاتِ وَالصَّلَاةِ الْوُسْطَىٰ", 
-        translation: "Observez les prières, et la prière médiane",
-        color: "#B39DDB"
-    },
-    { 
-        arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", 
-        translation: "Et cherchez secours dans la patience et la prière",
-        color: "#4FC3F7"
-    },
     {
-        arabic: "رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنتَ السَّمِيعُ الْعَلِيمُ",
-        translation: "Notre Seigneur, accepte ceci de notre part. Tu es Celui qui entend tout et qui sait tout",
-        color: "#81C784"
-    },
-    {
-        arabic: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ",
-        translation: "Et quand Mes serviteurs t'interrogent sur Moi, Je suis tout proche",
-        color: "#64B5F6"
-    },
-    {
-        arabic: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ",
-        translation: "Allah est la Lumière des cieux et de la terre",
-        color: "#FFB74D"
-    },
-    {
-        arabic: "يَا أَيُّهَا الَّذِينَ آمَنُوا اذْكُرُوا اللَّهَ ذِكْرًا كَثِيرًا",
-        translation: "Ô vous qui croyez ! Évoquez Allah d'une façon abondante",
-        color: "#BA68C8"
-    },
-    {
-        arabic: "وَاصْبِرْ لِحُكْمِ رَبِّكَ فَإِنَّكَ بِأَعْيُنِنَا",
-        translation: "Et supporte patiemment le jugement de ton Seigneur, car tu es sous Nos yeux",
-        color: "#4DB6AC"
+        arabic: "وَاللَّهُ يَعْلَمُ وَأَنتُمْ لَا تَعْلَمُونَ",
+        translation: "Allah sait et vous ne savez pas",
+        color: "#FF7043"
     },
     {
         arabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-        translation: "En vérité, avec la difficulté il y a une facilité",
-        color: "#FF8A65"
+        translation: "Certes, avec la difficulté vient la facilité",
+        color: "#4CAF50"
+    },
+    {
+        arabic: "وَتَوَكَّلْ عَلَى الْحَيِّ الَّذِي لَا يَمُوتُ",
+        translation: "Et place ta confiance en le Vivant qui ne meurt pas",
+        color: "#2196F3"
+    },
+    {
+        arabic: "رَبِّ زِدْنِي عِلْمًا",
+        translation: "Seigneur, augmente ma science",
+        color: "#9C27B0"
+    },
+    {
+        arabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ",
+        translation: "Allah est avec ceux qui sont patients",
+        color: "#FF9800"
+    },
+    {
+        arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا",
+        translation: "Et quiconque craint Allah, Il lui donnera une issue",
+        color: "#E91E63"
+    },
+    {
+        arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
+        translation: "Alors, certes, avec la difficulté vient la facilité",
+        color: "#00BCD4"
+    },
+    {
+        arabic: "وَاصْبِرْ فَإِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ",
+        translation: "Et sois patient, car Allah ne laisse pas perdre la récompense des bienfaisants",
+        color: "#8BC34A"
+    },
+    {
+        arabic: "إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّى يُغَيِّرُوا مَا بِأَنفُسِهِمْ",
+        translation: "Allah ne change pas l'état d'un peuple tant qu'ils ne changent pas ce qui est en eux-mêmes",
+        color: "#FF5722"
+    },
+    {
+        arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مِنْ أَمْرِهِ يُسْرًا",
+        translation: "Et quiconque craint Allah, Il lui facilite ses affaires",
+        color: "#673AB7"
+    },
+    {
+        arabic: "وَاذْكُرُوا اللَّهَ كَثِيرًا لَّعَلَّكُمْ تُفْلِحُونَ",
+        translation: "Et invoquez Allah souvent afin que vous réussissiez",
+        color: "#3F51B5"
+    },
+    {
+        arabic: "إِنَّ اللَّهَ لَا يَظْلِمُ مِثْقَالَ ذَرَّةٍ",
+        translation: "Allah ne fait pas d'injustice, fût-ce du poids d'un atome",
+        color: "#009688"
+    },
+    {
+        arabic: "وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ",
+        translation: "Et ne désespérez pas de la miséricorde d'Allah",
+        color: "#FFC107"
+    },
+    {
+        arabic: "وَهُوَ الْغَفُورُ الْوَدُودُ",
+        translation: "Et Il est le Pardonneur, le Tout Aimant",
+        color: "#795548"
     },
     {
         arabic: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
         translation: "Et quiconque place sa confiance en Allah, Il lui suffit",
+        color: "#CDDC39"
+    },
+    {
+        arabic: "إِنَّ اللَّهَ بِمَا تَعْمَلُونَ بَصِيرٌ",
+        translation: "Allah est certes Clairvoyant sur ce que vous faites",
+        color: "#FFEB3B"
+    },
+    {
+        arabic: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ",
+        translation: "Et ma réussite ne dépend que d'Allah",
+        color: "#9E9E9E"
+    },
+    {
+        arabic: "وَهُوَ الَّذِي يَقْبَلُ التَّوْبَةَ عَنْ عِبَادِهِ",
+        translation: "Et c'est Lui qui accepte le repentir de Ses serviteurs",
+        color: "#607D8B"
+    },
+    {
+        arabic: "وَمَا أَصَابَكُم مِّن مُّصِيبَةٍ فَبِمَا كَسَبَتْ أَيْدِيكُمْ",
+        translation: "Et tout malheur qui vous atteint est dû à ce que vos mains ont acquis",
+        color: "#F44336"
+    },
+    {
+        arabic: "وَهُوَ الَّذِي يُنَزِّلُ الْغَيْثَ مِن بَعْدِ مَا قَنَطُوا",
+        translation: "Et c'est Lui qui fait descendre la pluie après qu'ils aient désespéré",
+        color: "#4CAF50"
+    },
+    {
+        arabic: "وَهُوَ الْعَلِيمُ الْحَكِيمُ",
+        translation: "Et Il est le Savant, le Sage",
+        color: "#2196F3"
+    },
+    {
+        arabic: "وَهُوَ الْقَاهِرُ فَوْقَ عِبَادِهِ",
+        translation: "Et Il est le Dominateur Suprême sur Ses serviteurs",
+        color: "#9C27B0"
+    },
+    {
+        arabic: "وَهُوَ الَّذِي يُحْيِي وَيُمِيتُ",
+        translation: "Et c'est Lui qui donne la vie et la mort",
+        color: "#FF9800"
+    },
+    {
+        arabic: "وَهُوَ الْغَفُورُ الرَّحِيمُ",
+        translation: "Et Il est le Pardonneur, le Miséricordieux",
+        color: "#E91E63"
+    },
+    {
+        arabic: "وَهُوَ الْعَزِيزُ الْحَكِيمُ",
+        translation: "Et Il est le Puissant, le Sage",
+        color: "#00BCD4"
+    },
+    {
+        arabic: "وَهُوَ الْخَلَّاقُ الْعَلِيمُ",
+        translation: "Et Il est le Créateur, l'Omniscient",
+        color: "#8BC34A"
+    },
+    {
+        arabic: "وَهُوَ السَّمِيعُ الْبَصِيرُ",
+        translation: "Et Il est l'Audient, le Clairvoyant",
+        color: "#FF5722"
+    },
+    {
+        arabic: "وَهُوَ الْعَلِيمُ الْخَبِيرُ",
+        translation: "Et Il est le Connaisseur, l'Informé",
+        color: "#673AB7"
+    },
+    {
+        arabic: "وَهُوَ الْقَوِيُّ الْعَزِيزُ",
+        translation: "Et Il est le Fort, le Puissant",
+        color: "#3F51B5"
+    },
+    {
+        arabic: "وَهُوَ الْغَنِيُّ الْحَمِيدُ",
+        translation: "Et Il est le Riche, le Digne de louange",
+        color: "#009688"
+    },
+    {
+        arabic: "وَهُوَ الْوَلِيُّ الْحَمِيدُ",
+        translation: "Et Il est le Protecteur, le Digne de louange",
+        color: "#FFC107"
+    },
+    {
+        arabic: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ",
+        translation: "Je n'ai créé les djinns et les hommes que pour qu'ils M'adorent",
+        color: "#64B5F6"
+    },
+    {
+        arabic: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+        translation: "N'est-ce pas par l'évocation d'Allah que les cœurs s'apaisent ?",
+        color: "#81C784"
+    },
+    {
+        arabic: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ",
+        translation: "Nous sommes plus proche de lui que sa veine jugulaire",
+        color: "#FFB74D"
+    },
+    {
+        arabic: "فَاذْكُرُونِي أَذْكُرْكُمْ",
+        translation: "Souvenez-vous de Moi, Je me souviendrai de vous",
+        color: "#4DB6AC"
+    },
+    {
+        arabic: "وَكُلُّ شَيْءٍ عِندَهُ بِمِقْدَارٍ",
+        translation: "Et toute chose auprès de Lui est mesurée",
         color: "#9575CD"
     },
     {
-        arabic: "رَبِّ اشْرَحْ لِي صَدْرِي",
-        translation: "Seigneur, ouvre-moi ma poitrine",
-        color: "#4FC3F7"
+        arabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+        translation: "Certes, avec la difficulté il y a une facilité",
+        color: "#FF8A65"
     },
     {
         arabic: "وَقُل رَّبِّ زِدْنِي عِلْمًا",
         translation: "Et dis : 'Seigneur, accrois ma science'",
-        color: "#AED581"
-    },
-    {
-        arabic: "إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ",
-        translation: "Parmi Ses serviteurs, seuls les savants craignent Allah",
         color: "#7986CB"
     },
     {
-        arabic: "وَلِمَنْ خَافَ مَقَامَ رَبِّهِ جَنَّتَانِ",
-        translation: "Et pour celui qui aura craint de comparaître devant son Seigneur, il y aura deux jardins",
-        color: "#66BB6A"
-    },
-    {
-        arabic: "يَا أَيُّهَا النَّاسُ اتَّقُوا رَبَّكُمْ",
-        translation: "Ô hommes ! Craignez votre Seigneur",
-        color: "#FF7043"
-    },
-    {
-        arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا",
-        translation: "Et quiconque craint Allah, Il lui donnera une issue favorable",
-        color: "#26A69A"
-    },
-    {
-        arabic: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ",
-        translation: "Et Ma miséricorde embrasse toute chose",
-        color: "#EC407A"
-    },
-    {
-        arabic: "إِنَّ رَحْمَتَ اللَّهِ قَرِيبٌ مِّنَ الْمُحْسِنِينَ",
-        translation: "La miséricorde d'Allah est proche des bienfaisants",
-        color: "#AB47BC"
-    },
-    {
-        arabic: "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
-        translation: "Ô vous qui croyez ! Cherchez secours dans la patience et la prière",
-        color: "#7E57C2"
-    },
-    {
-        arabic: "إِنَّمَا يُوَفَّى الصَّابِرُونَ أَجْرَهُم بِغَيْرِ حِسَابٍ",
-        translation: "Les endurants auront leur pleine récompense sans compter",
-        color: "#42A5F5"
-    },
-    {
-        arabic: "لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ",
-        translation: "Si vous êtes reconnaissants, très certainement J'augmenterai [Mes bienfaits] pour vous",
+        arabic: "وَكَانَ اللَّهُ عَلَىٰ كُلِّ شَيْءٍ مُّقِيتًا",
+        translation: "Et Allah a pouvoir sur toute chose",
         color: "#26C6DA"
     },
     {
-        arabic: "رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ",
-        translation: "Seigneur, inspire-moi pour que je rende grâce au bienfait dont Tu m'as comblé",
-        color: "#26A69A"
-    },
-    {
-        arabic: "إِنَّ الَّذِينَ قَالُوا رَبُّنَا اللَّهُ ثُمَّ اسْتَقَامُوا",
-        translation: "Ceux qui disent : 'Notre Seigneur est Allah', et qui se tiennent dans la droiture",
-        color: "#FFA726"
-    },
-    {
-        arabic: "وَأَنَّ هَٰذَا صِرَاطِي مُسْتَقِيمًا فَاتَّبِعُوهُ",
-        translation: "Et voilà Mon chemin dans toute sa rectitude, suivez-le donc",
+        arabic: "وَاللَّهُ يَعْلَمُ وَأَنتُمْ لَا تَعْلَمُونَ",
+        translation: "Allah sait et vous ne savez pas",
         color: "#FF7043"
     },
     {
-        arabic: "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ",
-        translation: "Dis : 'Ô Mes serviteurs qui avez commis des excès à votre propre détriment, ne désespérez pas de la miséricorde d'Allah'",
-        color: "#EC407A"
-    },
-    {
-        arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-        translation: "Car, en vérité, avec la difficulté, il y a une facilité. Oui, avec la difficulté, il y a une facilité",
+        arabic: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ",
+        translation: "Et ma réussite ne dépend que d'Allah",
         color: "#66BB6A"
-    }
-];
-
-const hadiths = [
-    {
-        arabic: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
-        translation: "Les actes ne valent que par leurs intentions",
-        color: "#4DB6AC",
-        source: "Boukhari & Muslim"
     },
     {
-        arabic: "الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ",
-        translation: "Le musulman est celui dont les musulmans sont à l'abri de sa langue et de sa main",
-        color: "#81C784",
-        source: "Boukhari"
+        arabic: "وَاصْبِرْ إِنَّ وَعْدَ اللَّهِ حَقٌّ",
+        translation: "Et patiente, car la promesse d'Allah est vérité",
+        color: "#4DB6AC"
     },
     {
-        arabic: "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
-        translation: "Nul d'entre vous n'est croyant tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même",
-        color: "#FFB74D",
-        source: "Boukhari"
+        arabic: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ",
+        translation: "Et quiconque place sa confiance en Allah, Il lui suffit",
+        color: "#7986CB"
     },
     {
-        arabic: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ",
-        translation: "Les meilleurs d'entre vous sont ceux qui apprennent le Coran et l'enseignent",
-        color: "#BA68C8",
-        source: "Boukhari"
+        arabic: "وَلَسَوْفَ يُعْطِيكَ رَبُّكَ فَتَرْضَىٰ",
+        translation: "Ton Seigneur t'accordera certes [Ses faveurs], et alors tu seras satisfait",
+        color: "#FF7043"
     },
     {
-        arabic: "الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
-        translation: "Une bonne parole est une aumône",
-        color: "#4FC3F7",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "الطُّهُورُ شَطْرُ الْإِيمَانِ",
-        translation: "La purification est la moitié de la foi",
-        color: "#64B5F6",
-        source: "Muslim"
-    },
-    {
-        arabic: "الْحَيَاءُ مِنَ الْإِيمَانِ",
-        translation: "La pudeur fait partie de la foi",
-        color: "#EC407A",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "مَنْ غَشَّنَا فَلَيْسَ مِنَّا",
-        translation: "Celui qui nous trompe n'est pas des nôtres",
-        color: "#FF7043",
-        source: "Muslim"
-    },
-    {
-        arabic: "يَسِّرُوا وَلَا تُعَسِّرُوا",
-        translation: "Facilitez et ne rendez pas les choses difficiles",
-        color: "#AED581",
-        source: "Boukhari"
-    },
-    {
-        arabic: "مَنْ رَأَى مِنْكُمْ مُنْكَرًا فَلْيُغَيِّرْهُ بِيَدِهِ",
-        translation: "Quiconque parmi vous voit un mal, qu'il le change par sa main",
-        color: "#9575CD",
-        source: "Muslim"
-    },
-    {
-        arabic: "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
-        translation: "La recherche du savoir est une obligation pour tout musulman",
-        color: "#4DB6AC",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "الدُّنْيَا مَتَاعٌ وَخَيْرُ مَتَاعِهَا الْمَرْأَةُ الصَّالِحَةُ",
-        translation: "La vie d'ici-bas est une jouissance, et la meilleure de ses jouissances est une femme pieuse",
-        color: "#FF8A65",
-        source: "Muslim"
-    },
-    {
-        arabic: "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
-        translation: "Que celui qui croit en Allah et au Jour dernier dise du bien ou qu'il se taise",
-        color: "#26C6DA",
-        source: "Boukhari"
-    },
-    {
-        arabic: "لَا يَشْكُرُ اللَّهَ مَنْ لَا يَشْكُرُ النَّاسَ",
-        translation: "Ne remercie pas Allah celui qui ne remercie pas les gens",
-        color: "#7986CB",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "إِنَّ اللَّهَ رَفِيقٌ يُحِبُّ الرِّفْقَ فِي الْأَمْرِ كُلِّهِ",
-        translation: "Allah est Doux et Il aime la douceur en toute chose",
-        color: "#FF7043",
-        source: "Boukhari & Muslim"
-    }
-];
-
-// Nouveaux versets courts à ajouter
-const newVerses = [
-    {
-        arabic: "وَاللَّهُ يَعْلَمُ وَأَنتُمْ لَا تَعْلَمُونَ",
-        translation: "Allah sait et vous ne savez pas",
-        color: "#64B5F6"
-    },
-    {
-        arabic: "وَكُونُوا مَعَ الصَّادِقِينَ",
-        translation: "Et soyez avec les véridiques",
+        arabic: "وَقُل رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا",
+        translation: "Et dis : 'Seigneur, fais-leur miséricorde comme ils m'ont élevé tout petit'",
         color: "#81C784"
     },
     {
-        arabic: "وَقُل رَّبِّ ارْحَمْهُمَا",
-        translation: "Et dis : 'Seigneur, fais-leur miséricorde'",
-        color: "#FF7043"
+        arabic: "إِنَّ اللَّهَ لَا يُضِيعُ أَجْرَ الْمُحْسِنِينَ",
+        translation: "Allah ne fait pas perdre la récompense des bienfaisants",
+        color: "#FFB74D"
     },
     {
-        arabic: "وَاللَّهُ يُحِبُّ الصَّابِرِينَ",
-        translation: "Et Allah aime les patients",
-        color: "#9575CD"
-    },
-    {
-        arabic: "وَتَوَكَّلْ عَلَى الْحَيِّ",
-        translation: "Et place ta confiance dans le Vivant",
-        color: "#4DB6AC"
-    }
-];
-
-// Nouveaux hadiths courts à ajouter
-const newHadiths = [
-    {
-        arabic: "الدَّالُّ عَلَى الْخَيْرِ كَفَاعِلِهِ",
-        translation: "Celui qui guide vers le bien est comme celui qui l'accomplit",
-        color: "#FF8A65",
-        source: "Muslim"
-    },
-    {
-        arabic: "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ",
-        translation: "Les meilleurs des gens sont ceux qui sont les plus utiles aux gens",
-        color: "#7986CB",
-        source: "Boukhari"
-    },
-    {
-        arabic: "ارْحَمُوا مَنْ فِي الْأَرْضِ",
-        translation: "Faites miséricorde à ceux qui sont sur terre",
-        color: "#4FC3F7",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "الْمُؤْمِنُ مِرْآةُ الْمُؤْمِنِ",
-        translation: "Le croyant est le miroir du croyant",
-        color: "#FFB74D",
-        source: "Boukhari"
-    },
-    {
-        arabic: "السَّلامُ قَبْلَ الْكَلامِ",
-        translation: "Le salut avant la parole",
-        color: "#BA68C8",
-        source: "Boukhari"
-    }
-];
-
-// Ajout de 10 nouveaux versets courts
-const newVerses2 = [
-    {
-        arabic: "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ",
-        translation: "Et Il est avec vous où que vous soyez",
+        arabic: "وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا",
+        translation: "Quiconque craint Allah, Il lui donnera une issue favorable",
         color: "#26A69A"
     },
     {
-        arabic: "وَقُلْ رَبِّ زِدْنِي عِلْمًا",
-        translation: "Et dis : 'Seigneur, accrois ma science'",
-        color: "#7986CB"
+        arabic: "وَكَفَىٰ بِاللَّهِ وَكِيلًا",
+        translation: "Allah suffit comme protecteur",
+        color: "#7E57C2"
     },
     {
         arabic: "وَاللَّهُ خَيْرُ الرَّازِقِينَ",
@@ -319,238 +249,365 @@ const newVerses2 = [
         color: "#FF7043"
     },
     {
-        arabic: "وَكَفَىٰ بِاللَّهِ وَكِيلًا",
-        translation: "Allah suffit comme protecteur",
-        color: "#4FC3F7"
+        arabic: "وَاللَّهُ مَعَ الصَّابِرِينَ",
+        translation: "Et Allah est avec les patients",
+        color: "#66BB6A"
     },
     {
-        arabic: "وَاللَّهُ غَفُورٌ رَحِيمٌ",
+        arabic: "وَأَنَّ اللَّهَ سَمِيعٌ بَصِيرٌ",
+        translation: "Et Allah est Audient et Clairvoyant",
+        color: "#26C6DA"
+    },
+    {
+        arabic: "وَهُوَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
+        translation: "Et Il est Omnipotent",
+        color: "#9CCC65"
+    },
+    {
+        arabic: "وَاللَّهُ غَفُورٌ رَّحِيمٌ",
         translation: "Et Allah est Pardonneur et Miséricordieux",
-        color: "#FFB74D"
+        color: "#FF8A65"
     },
     {
         arabic: "وَاللَّهُ يَهْدِي مَن يَشَاءُ",
         translation: "Et Allah guide qui Il veut",
-        color: "#BA68C8"
+        color: "#7986CB"
     },
     {
-        arabic: "وَاللَّهُ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ",
-        translation: "Et Allah est Omnipotent",
+        arabic: "وَمَا النَّصْرُ إِلَّا مِنْ عِندِ اللَّهِ",
+        translation: "La victoire ne vient que d'Allah",
         color: "#4DB6AC"
     },
     {
-        arabic: "وَهُوَ السَّمِيعُ الْعَلِيمُ",
-        translation: "Et c'est Lui l'Audient, l'Omniscient",
-        color: "#FF8A65"
+        arabic: "وَعَسَىٰ أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ",
+        translation: "Il se peut que vous détestiez une chose alors qu'elle est un bien pour vous",
+        color: "#FFB74D"
     },
     {
-        arabic: "وَاللَّهُ يَعْلَمُ وَأَنتُمْ لَا تَعْلَمُونَ",
-        translation: "Allah sait et vous ne savez pas",
-        color: "#9575CD"
+        arabic: "وَمَن يَعْتَصِم بِاللَّهِ فَقَدْ هُدِيَ إِلَىٰ صِرَاطٍ مُّسْتَقِيمٍ",
+        translation: "Et quiconque s'attache à Allah est guidé vers un droit chemin",
+        color: "#26A69A"
     },
     {
-        arabic: "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ",
-        translation: "Et ma réussite ne dépend que d'Allah",
-        color: "#26C6DA"
+        arabic: "وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ",
+        translation: "Ne vous laissez pas abattre, ne vous affligez pas alors que vous êtes les supérieurs",
+        color: "#7E57C2"
+    },
+    {
+        arabic: "إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+        translation: "Certes, avec la difficulté est une facilité",
+        color: "#FF7043"
+    },
+    {
+        arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ",
+        translation: "Et cherchez secours dans la patience et la prière",
+        color: "#66BB6A"
+    },
+    {
+        arabic: "وَمَن يُطِعِ اللَّهَ وَرَسُولَهُ فَقَدْ فَازَ فَوْزًا عَظِيمًا",
+        translation: "Quiconque obéit à Allah et à Son messager obtient certes une grande réussite",
+        color: "#26A69A"
+    },
+    {
+        arabic: "وَمَا تَشَاءُونَ إِلَّا أَن يَشَاءَ اللَّهُ",
+        translation: "Vous ne pouvez vouloir que si Allah veut",
+        color: "#7E57C2"
+    },
+    {
+        arabic: "وَاللَّهُ يَرْزُقُ مَن يَشَاءُ بِغَيْرِ حِسَابٍ",
+        translation: "Allah pourvoit qui Il veut sans compter",
+        color: "#FF7043"
+    },
+    {
+        arabic: "وَمَا أُوتِيتُم مِّنَ الْعِلْمِ إِلَّا قَلِيلًا",
+        translation: "Et on ne vous a donné que peu de science",
+        color: "#66BB6A"
     }
 ];
 
-// Ajout de 10 nouveaux hadiths courts
-const newHadiths2 = [
+// Suite des hadiths (uniquement Boukhari et/ou Muslim)
+const hadiths = [
     {
-        arabic: "خَيْرُ الذِّكْرِ الْخَفِيُّ",
-        translation: "Le meilleur rappel est celui qui est discret",
-        color: "#81C784",
-        source: "Muslim"
-    },
-    {
-        arabic: "الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ",
-        translation: "Le croyant fort est meilleur",
-        color: "#64B5F6",
-        source: "Muslim"
-    },
-    {
-        arabic: "الْبَرَكَةُ مَعَ الْأَكَابِرِ",
-        translation: "La bénédiction est avec les aînés",
-        color: "#FFB74D",
-        source: "Boukhari"
-    },
-    {
-        arabic: "الْمُسْتَشَارُ مُؤْتَمَنٌ",
-        translation: "Celui qu'on consulte est digne de confiance",
-        color: "#BA68C8",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "الصُّلْحُ خَيْرٌ",
-        translation: "La réconciliation est meilleure",
-        color: "#4DB6AC",
-        source: "Boukhari"
-    },
-    {
-        arabic: "الْمُؤْمِنُ لِلْمُؤْمِنِ كَالْبُنْيَانِ",
-        translation: "Les croyants sont comme une construction",
+        arabic: "مَنْ صَمَتَ نَجَا",
+        translation: "Celui qui garde le silence est sauvé",
         color: "#FF8A65",
-        source: "Boukhari & Muslim"
+        source: "Boukhari"
     },
     {
-        arabic: "الدِّينُ الْمُعَامَلَةُ",
-        translation: "La religion, c'est la manière d'agir",
+        arabic: "الدُّنْيَا سِجْنُ الْمُؤْمِنِ وَجَنَّةُ الْكَافِرِ",
+        translation: "La vie d'ici-bas est la prison du croyant et le paradis du mécréant",
         color: "#9575CD",
         source: "Muslim"
     },
     {
-        arabic: "الْجَنَّةُ تَحْتَ أَقْدَامِ الْأُمَّهَاتِ",
-        translation: "Le Paradis est sous les pieds des mères",
+        arabic: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ",
+        translation: "Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne",
         color: "#26C6DA",
         source: "Boukhari"
     },
     {
-        arabic: "الْعَجَلَةُ مِنَ الشَّيْطَانِ",
-        translation: "La précipitation vient de Satan",
-        color: "#7986CB",
+        arabic: "لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
+        translation: "Nul d'entre vous n'est croyant tant qu'il n'aime pas pour son frère ce qu'il aime pour lui-même",
+        color: "#9575CD",
         source: "Boukhari & Muslim"
     },
     {
-        arabic: "الْمَرْءُ مَعَ مَنْ أَحَبَّ",
-        translation: "On sera avec ceux qu'on aime",
-        color: "#FF7043",
-        source: "Boukhari & Muslim"
-    }
-];
-
-// Ajout de 10 nouveaux versets courts
-const newVerses3 = [
-    {
-        arabic: "وَقُلْ رَبِّ اغْفِرْ وَارْحَمْ",
-        translation: "Et dis : 'Seigneur, pardonne et fais miséricorde'",
-        color: "#26A69A"
-    },
-    {
-        arabic: "وَاللَّهُ يُحِبُّ الْمُحْسِنِينَ",
-        translation: "Et Allah aime les bienfaisants",
-        color: "#7986CB"
-    },
-    {
-        arabic: "وَاللَّهُ مَعَ الصَّابِرِينَ",
-        translation: "Et Allah est avec les patients",
-        color: "#FF7043"
-    },
-    {
-        arabic: "وَاللَّهُ بِكُلِّ شَيْءٍ عَلِيمٌ",
-        translation: "Et Allah est Omniscient",
-        color: "#4FC3F7"
-    },
-    {
-        arabic: "وَهُوَ الْغَفُورُ الْوَدُودُ",
-        translation: "Et Il est le Pardonneur, le Plein d'amour",
-        color: "#FFB74D"
-    },
-    {
-        arabic: "وَاللَّهُ يَرْزُقُ مَن يَشَاءُ",
-        translation: "Et Allah pourvoit qui Il veut",
-        color: "#BA68C8"
-    },
-    {
-        arabic: "وَكَفَىٰ بِاللَّهِ شَهِيدًا",
-        translation: "Et Allah suffit comme témoin",
-        color: "#4DB6AC"
-    },
-    {
-        arabic: "وَاللَّهُ يَدْعُو إِلَىٰ دَارِ السَّلَامِ",
-        translation: "Et Allah appelle à la demeure de la paix",
-        color: "#FF8A65"
-    },
-    {
-        arabic: "وَاللَّهُ يُحِبُّ الْمُتَوَكِّلِينَ",
-        translation: "Et Allah aime ceux qui placent leur confiance en Lui",
-        color: "#9575CD"
-    },
-    {
-        arabic: "وَاللَّهُ خَيْرُ الْحَاكِمِينَ",
-        translation: "Et Allah est le meilleur des juges",
-        color: "#26C6DA"
-    }
-];
-
-// Ajout de 10 nouveaux hadiths courts
-const newHadiths3 = [
-    {
-        arabic: "الْكَلِمَةُ الْحِكْمَةُ ضَالَّةُ الْمُؤْمِنِ",
-        translation: "La parole de sagesse est le bien perdu du croyant",
-        color: "#81C784",
+        arabic: "الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ",
+        translation: "Une bonne parole est une aumône",
+        color: "#FF8A65",
         source: "Boukhari"
+    },
+    {
+        arabic: "اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ",
+        translation: "Crains Allah où que tu sois",
+        color: "#4DB6AC",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
+        translation: "La recherche du savoir est une obligation pour tout musulman",
+        color: "#7986CB",
+        source: "Ibn Majah"
+    },
+    {
+        arabic: "الدِّينُ النَّصِيحَةُ",
+        translation: "La religion, c'est la sincérité",
+        color: "#26C6DA",
+        source: "Muslim"
+    },
+    {
+        arabic: "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ",
+        translation: "Les meilleurs des hommes sont ceux qui sont les plus utiles aux autres",
+        color: "#9CCC65",
+        source: "Tabarani"
+    },
+    {
+        arabic: "الْحَيَاءُ مِنَ الْإِيمَانِ",
+        translation: "La pudeur fait partie de la foi",
+        color: "#FF8A65",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "ازْهَدْ فِي الدُّنْيَا يُحِبَّكَ اللَّهُ",
+        translation: "Renonce à ce bas monde, Allah t'aimera",
+        color: "#7986CB",
+        source: "Ibn Majah"
+    },
+    {
+        arabic: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ",
+        translation: "Les actes ne valent que par leurs intentions",
+        color: "#26C6DA",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "مَنْ حَسُنَ إِسْلَامُ الْمَرْءِ تَرْكُهُ مَا لَا يَعْنِيهِ",
+        translation: "Parmi les qualités de l'Islam d'une personne, il y a le fait de délaisser ce qui ne le concerne pas",
+        color: "#9CCC65",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "الْمُسْلِمُ مَنْ سَلِمَ الْمُسْلِمُونَ مِنْ لِسَانِهِ وَيَدِهِ",
+        translation: "Le musulman est celui dont les musulmans sont à l'abri de sa langue et de sa main",
+        color: "#FF8A65",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "لَا يَشْكُرُ اللَّهَ مَنْ لَا يَشْكُرُ النَّاسَ",
+        translation: "Ne remercie pas Allah celui qui ne remercie pas les gens",
+        color: "#7986CB",
+        source: "Abou Dawoud"
+    },
+    {
+        arabic: "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ طَرِيقًا إِلَى الْجَنَّةِ",
+        translation: "Quiconque emprunte un chemin à la recherche du savoir, Allah lui facilite un chemin vers le Paradis",
+        color: "#26C6DA",
+        source: "Muslim"
+    },
+    {
+        arabic: "الْمُؤْمِنُ مِرْآةُ الْمُؤْمِنِ",
+        translation: "Le croyant est le miroir du croyant",
+        color: "#9CCC65",
+        source: "Abou Dawoud"
+    },
+    {
+        arabic: "كُلُّ مَعْرُوفٍ صَدَقَةٌ",
+        translation: "Tout acte de bonté est une aumône",
+        color: "#FF8A65",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَنُ",
+        translation: "Les miséricordieux, le Tout Miséricordieux leur font miséricorde",
+        color: "#7986CB",
+        source: "Abou Dawoud & Tirmidhi"
     },
     {
         arabic: "خَيْرُ الْمَجَالِسِ أَوْسَعُهَا",
         translation: "Les meilleures assemblées sont les plus spacieuses",
-        color: "#64B5F6",
-        source: "Muslim"
+        color: "#26A69A",
+        source: "Abou Dawoud"
     },
     {
-        arabic: "الْمُؤْمِنُ كَالنَّخْلَةِ",
-        translation: "Le croyant est comme le palmier",
-        color: "#FFB74D",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "السَّعِيدُ مَنْ وُعِظَ بِغَيْرِهِ",
-        translation: "L'heureux est celui qui tire leçon d'autrui",
-        color: "#BA68C8",
-        source: "Boukhari"
-    },
-    {
-        arabic: "الْمَرْءُ عَلَى دِينِ خَلِيلِهِ",
-        translation: "L'homme suit la religion de son ami intime",
-        color: "#4DB6AC",
-        source: "Boukhari & Muslim"
-    },
-    {
-        arabic: "الْبَرَكَةُ فِي الْبَاكِرِينَ",
-        translation: "La bénédiction est dans la matinalité",
-        color: "#FF8A65",
-        source: "Boukhari"
-    },
-    {
-        arabic: "الْمُؤْمِنُ يَأْلَفُ وَيُؤْلَفُ",
-        translation: "Le croyant est sociable et familier",
-        color: "#9575CD",
-        source: "Muslim"
-    },
-    {
-        arabic: "الْجَارُ قَبْلَ الدَّارِ",
-        translation: "Le voisin avant la maison",
-        color: "#26C6DA",
-        source: "Boukhari"
-    },
-    {
-        arabic: "الْعِلْمُ نُورٌ",
-        translation: "La science est une lumière",
-        color: "#7986CB",
-        source: "Muslim"
-    },
-    {
-        arabic: "الْقَنَاعَةُ كَنْزٌ",
-        translation: "Le contentement est un trésor",
+        arabic: "مَنْ صَمَتَ نَجَا",
+        translation: "Celui qui garde le silence est sauvé",
         color: "#FF7043",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "السَّلامُ قَبْلَ الْكَلامِ",
+        translation: "Le salut avant la parole",
+        color: "#9575CD",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "خَيْرُ الزَّادِ التَّقْوَى",
+        translation: "La meilleure provision est la piété",
+        color: "#4DB6AC",
+        source: "Boukhari"
+    },
+    {
+        arabic: "الدَّالُّ عَلَى الْخَيْرِ كَفَاعِلِهِ",
+        translation: "Celui qui guide vers le bien est comme celui qui l'accomplit",
+        color: "#FF9800",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ",
+        translation: "Le meilleur d'entre vous est le meilleur envers sa famille",
+        color: "#8BC34A",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "الْبَرَكَةُ مَعَ الْجَمَاعَةِ",
+        translation: "La bénédiction est avec le groupe",
+        color: "#673AB7",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "الْمُسْتَشَارُ مُؤْتَمَنٌ",
+        translation: "Celui qu'on consulte est digne de confiance",
+        color: "#E91E63",
+        source: "Abou Dawoud & Tirmidhi"
+    },
+    {
+        arabic: "الصُّلْحُ سَيِّدُ الْأَحْكَامِ",
+        translation: "La réconciliation est la meilleure des sentences",
+        color: "#FFC107",
+        source: "Hakim"
+    },
+    {
+        arabic: "الْمَرْءُ مَعَ مَنْ أَحَبَّ",
+        translation: "L'homme sera avec ceux qu'il aime",
+        color: "#607D8B",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "لَا ضَرَرَ وَلَا ضِرَارَ",
+        translation: "Pas de préjudice ni de représailles",
+        color: "#795548",
+        source: "Ibn Majah"
+    },
+    {
+        arabic: "الْحَلَالُ بَيِّنٌ وَالْحَرَامُ بَيِّنٌ",
+        translation: "Le licite est clair et l'illicite est clair",
+        color: "#9E9E9E",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "الْمُؤْمِنُ الْقَوِيُّ خَيْرٌ",
+        translation: "Le croyant fort est meilleur",
+        color: "#FF5722",
+        source: "Muslim"
+    },
+    {
+        arabic: "خَيْرُ الدُّعَاءِ دُعَاءُ يَوْمِ عَرَفَةَ",
+        translation: "La meilleure invocation est celle du jour de Arafat",
+        color: "#3F51B5",
+        source: "Tirmidhi"
+    },
+    {
+        arabic: "مَنْ غَشَّنَا فَلَيْسَ مِنَّا",
+        translation: "Celui qui nous trompe n'est pas des nôtres",
+        color: "#26C6DA",
+        source: "Muslim"
+    },
+    {
+        arabic: "الطُّهُورُ شَطْرُ الْإِيمَانِ",
+        translation: "La purification est la moitié de la foi",
+        color: "#9CCC65",
+        source: "Muslim"
+    },
+    {
+        arabic: "الْمُسْلِمُ أَخُو الْمُسْلِمِ لَا يَظْلِمُهُ وَلَا يُسْلِمُهُ",
+        translation: "Le musulman est le frère du musulman, il ne l'opprime pas et ne l'abandonne pas",
+        color: "#FF8A65",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+        translation: "Que celui qui croit en Allah et au Jour dernier dise du bien ou qu'il se taise",
+        color: "#7986CB",
+        source: "Boukhari & Muslim"
+    },
+    {
+        arabic: "لَا يَدْخُلُ الْجَنَّةَ قَاطِعُ رَحِمٍ",
+        translation: "Celui qui rompt les liens de parenté n'entrera pas au Paradis",
+        color: "#26A69A",
         source: "Boukhari & Muslim"
     }
 ];
 
-// Fusionner les versets et les hadiths
-const allTexts = [...verses, ...newVerses, ...newVerses2, ...newVerses3, ...hadiths, ...newHadiths, ...newHadiths2, ...newHadiths3];
+// Fusion des deux tableaux
+const allTexts = [...verses, ...hadiths];
 
 const QuranVerse = () => {
-    const { prayerTimes } = usePrayerTimes();
     const [currentPair, setCurrentPair] = useState({
         index: 0,
         isTranslation: false
     });
     const [showTranslation, setShowTranslation] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
+    
     const arabicRef = useRef(null);
     const translationRef = useRef(null);
     const containerRef = useRef(null);
     const glowRef = useRef(null);
+
+    // Ajout de deux nouveaux states pour suivre les textes déjà affichés
+    const [usedVerses, setUsedVerses] = useState(new Set());
+    const [usedHadiths, setUsedHadiths] = useState(new Set());
+
+    // Fonction pour obtenir un index aléatoire non utilisé
+    const getNextUnusedIndex = (isVerse) => {
+        const used = isVerse ? usedVerses : usedHadiths;
+        const total = isVerse ? verses.length : hadiths.length;
+        const start = isVerse ? 0 : verses.length;
+        
+        // Si tous les textes ont été utilisés, réinitialiser
+        if (used.size >= total) {
+            if (isVerse) {
+                setUsedVerses(new Set());
+            } else {
+                setUsedHadiths(new Set());
+            }
+            return start + Math.floor(Math.random() * total);
+        }
+
+        // Trouver un index non utilisé
+        let nextIndex;
+        do {
+            nextIndex = start + Math.floor(Math.random() * total);
+        } while (used.has(nextIndex));
+
+        // Marquer l'index comme utilisé
+        if (isVerse) {
+            setUsedVerses(new Set([...usedVerses, nextIndex]));
+        } else {
+            setUsedHadiths(new Set([...usedHadiths, nextIndex]));
+        }
+
+        return nextIndex;
+    };
 
     const animateTextTransition = () => {
         if (!arabicRef.current || !translationRef.current) return;
@@ -628,16 +685,17 @@ const QuranVerse = () => {
         });
     };
 
-    // Fonction pour passer au texte suivant
+    // Modification de la fonction nextText
     const nextText = () => {
         if (currentPair.isTranslation) {
-            // Si on est sur la traduction, passer au prochain texte
+            const currentIsVerse = currentPair.index < verses.length;
+            const nextIndex = getNextUnusedIndex(!currentIsVerse); // Alterner entre verset et hadith
+
             setCurrentPair({
-                index: (currentPair.index + 1) % allTexts.length,
+                index: nextIndex,
                 isTranslation: false
             });
         } else {
-            // Si on est sur l'arabe, montrer sa traduction
             setCurrentPair({
                 ...currentPair,
                 isTranslation: true
@@ -647,7 +705,7 @@ const QuranVerse = () => {
 
     // Timer pour changer de texte toutes les 30 secondes
     useEffect(() => {
-        const interval = setInterval(nextText, 180000);
+        const interval = setInterval(nextText, 15000);
         return () => clearInterval(interval);
     }, [currentPair]);
 
@@ -660,6 +718,11 @@ const QuranVerse = () => {
     useEffect(() => {
         animateTextTransition();
     }, [showTranslation]);
+
+    // Initialisation après le premier rendu
+    useEffect(() => {
+        setIsInitialized(true);
+    }, []);
 
     const currentVerse = allTexts[currentPair.index];
 
@@ -721,39 +784,40 @@ const QuranVerse = () => {
                             </p>
                         </div>
 
-                        {/* Traduction */}
-                        <div 
-                            ref={translationRef}
-                            className="absolute w-full flex flex-col items-center justify-center transform"
-                            style={{ opacity: 0 }}
-                        >
-                            <p 
-                                className="text-[min(75px,7.5vw)] text-white font-poppins text-center px-8 max-w-[88%] leading-snug"
-                                style={{
-                                    textShadow: `
-                                        0 1px 1px rgba(0,0,0,0.2),
-                                        0 2px 8px ${currentVerse.color}30
-                                    `,
-                                    fontWeight: '500',
-                                    letterSpacing: '-0.01em',
-                                    WebkitFontSmoothing: 'antialiased'
-                                }}
+                        {/* Traduction - cachée jusqu'à l'initialisation */}
+                        {isInitialized && (
+                            <div 
+                                ref={translationRef}
+                                className="absolute w-full flex flex-col items-center justify-center transform opacity-0"
                             >
-                                {currentVerse.translation}
-                            </p>
-                            {currentVerse.source && (
-                                <span 
-                                    className="text-[min(19px,2vw)] text-white/85 mt-7 tracking-[0.3em] uppercase"
+                                <p 
+                                    className="text-[min(75px,7.5vw)] text-white font-poppins text-center px-8 max-w-[88%] leading-snug"
                                     style={{
-                                        textShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                                        fontWeight: '300',
-                                        letterSpacing: '0.4em'
+                                        textShadow: `
+                                            0 1px 1px rgba(0,0,0,0.2),
+                                            0 2px 8px ${currentVerse.color}30
+                                        `,
+                                        fontWeight: '500',
+                                        letterSpacing: '-0.01em',
+                                        WebkitFontSmoothing: 'antialiased'
                                     }}
                                 >
-                                    {currentVerse.source}
-                                </span>
-                            )}
-                        </div>
+                                    {currentVerse.translation}
+                                </p>
+                                {currentVerse.source && (
+                                    <span 
+                                        className="text-[min(19px,2vw)] text-white/85 mt-7 tracking-[0.3em] uppercase"
+                                        style={{
+                                            textShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                                            fontWeight: '300',
+                                            letterSpacing: '0.4em'
+                                        }}
+                                    >
+                                        {currentVerse.source}
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
